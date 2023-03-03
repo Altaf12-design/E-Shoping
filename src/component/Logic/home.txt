@@ -1,0 +1,367 @@
+import React, { useContext, useState } from 'react'
+import { Card, Col, Row } from 'react-bootstrap'
+import { FaProductHunt } from 'react-icons/fa'
+import ReactShowMoreText from 'react-show-more-text'
+import Searching from './Logic/Searching'
+import './eshoping.css'
+import Dropdown from 'react-bootstrap/Dropdown';
+import { Badge, FormControl, NavbarBrand, NavLink } from 'react-bootstrap';
+import Button from 'react-bootstrap/Button';
+import Container from 'react-bootstrap/Container';
+import Form from 'react-bootstrap/Form';
+import Nav from 'react-bootstrap/Nav';
+import Navbar from 'react-bootstrap/Navbar';
+import NavDropdown from 'react-bootstrap/NavDropdown';
+import{FaShoppingCart,FaTrashRestore} from 'react-icons/fa'
+import {AiOutlineClose,AiOutlineCheck} from 'react-icons/ai'
+import {GrAddCircle,GrSubtractCircle} from 'react-icons/gr'
+import Modal from 'react-bootstrap/Modal';
+import TextField from '@material-ui/core/TextField';
+import Autocomplete from '@material-ui/lab/Autocomplete';
+import { AppContext } from './Context'
+import { useEffect } from 'react'
+import Spiner from './Spiner'
+const Home = (props) => {
+  let {state}=useContext(AppContext)
+   let {product}=state
+   const [myOptions, setMyOptions] = useState([])
+   const [searchProduct, setSearchProduct] = useState(product)
+   const [actyalProducts, setActyalProducts] = useState(product)
+console.log(product)
+
+   const [PendingBadgeData,setPendingData]=useState([])
+   const [show, setShow] = useState(false);
+   const [lg, setlg] = useState(false);
+   const [Dispatch, setDispatch] = useState([]);
+  const [Total , setTotal]=useState('')
+  const [Loader , setLoader]=useState(true)
+  const [Categorylist , setCatogaryList]=useState([])
+
+useEffect(()=>{
+  setActyalProducts(product);
+  setSearchProduct(product)
+  fetchData()
+       Totalfuntion()
+       
+       
+},[product])
+
+let filterUniqueCategory=()=>{
+
+  let uniqueItems = [...new Set (product.map((item)=>{return item.category.name}))];
+  setCatogaryList(uniqueItems)
+}
+
+   let fetchData=()=>{
+    try {
+
+       for (var i = 0; i < product.length; i++) {
+        myOptions.push(product[i].title)
+        
+              }
+              setMyOptions(myOptions)
+    } catch (error) {
+        console.log('error')
+    }
+}
+const searchFilterFunction = (text) => {
+
+  // Check if searched text is not blank
+  if (text) {
+    // Inserted text is not blank
+    // Filter the masterDataSource and update FilteredDataSource
+    const newData = searchProduct.filter(
+      function (item) {
+        // Applying filter for the inserted text in search bar
+    
+        const itemData = item?.category.name
+            ? item.title.toUpperCase()
+            : ''.toUpperCase();
+        const textData = text.toUpperCase();
+       
+        return itemData.indexOf(textData) > -1;
+      }
+    );
+    setActyalProducts(newData);
+    // setSearch(text);
+  } else {
+    // Inserted text is blank
+    // Update FilteredDataSource with masterDataSource
+    setActyalProducts(searchProduct);
+    // setSearch(text);
+  }
+};
+const AddClickToBadge=(id)=>{
+
+  let PendingBadge=product.filter((item)=>item.id == id)
+     setPendingData([...PendingBadgeData,...PendingBadge])
+   
+}
+
+
+const RemoveBadge=(id)=>{
+  let removefrompending=PendingBadgeData.filter((item)=>item.id != id)
+  setPendingData(removefrompending)
+ 
+
+}
+
+
+const removeinDispatch=(id)=>{
+
+  let RemoveinDispatch=Dispatch.filter((item)=>item.id != id)
+  setDispatch(RemoveinDispatch)
+     
+}
+
+
+const SendToDispatch=(id)=>{
+  
+ const dispatchrecive=PendingBadgeData.filter((item)=>item.id==id)
+   setDispatch([...Dispatch,...dispatchrecive])
+ RemoveBadge(id)
+}
+
+let AddNewMore=(id)=>{
+  let NewItem=Dispatch.filter((item)=>item.id==id)
+     setDispatch([...Dispatch,...NewItem])
+        
+}
+
+
+const OrderPlace=()=>{
+  setDispatch([])
+  setTotal(0)
+}
+
+let Totalfuntion=()=>{
+  let grand=0
+  const prices = Dispatch.map(item => item.price);
+  prices.map((items)=>{
+    grand=items+grand
+  })
+  setTotal(grand)
+}
+
+  return (
+  <>
+   <Navbar bg='dark' variant='dark'>
+  <Container>
+    <NavbarBrand>
+      <NavLink>E-Shoping</NavLink>
+    </NavbarBrand>
+    <Navbar.Text>
+      
+    <Autocomplete
+        style={{ width: 510,backgroundColor:'white',borderRadius:'5px',height:'30px' }}
+        options={myOptions}
+        renderInput={(params) => (
+          <TextField style={{width:'490px',marginLeft:'10px'}} {...params}
+            onChange={e=>{searchFilterFunction(e.target.value)}}
+            
+            placeholder="Search..."
+          />
+        )}
+      />
+
+    </Navbar.Text>
+    <Navbar.Text>
+    <Dropdown onClick={()=>filterUniqueCategory()} >
+      <Dropdown.Toggle variant="success">
+        Filter As Catogary
+      </Dropdown.Toggle>
+
+      <Dropdown.Menu>
+        {Categorylist.map((item)=>{
+          
+          return(
+            <>
+             <Dropdown.Item   onClick={e=>{searchFilterFunction(item)}} eventKey="3"><h6 style={{color:'black'}}>{item}</h6></Dropdown.Item>
+            </>
+          )
+
+        })}
+       
+      </Dropdown.Menu>
+    </Dropdown>
+    </Navbar.Text>
+    <Nav>
+  </Nav>
+  <Nav>
+  <Dropdown>
+
+      <Dropdown.Toggle onClick={() => setShow(true)}>
+        <FaShoppingCart/>
+        <Badge style={{color:'red'}}>{PendingBadgeData.length}</Badge>
+      </Dropdown.Toggle>
+   
+
+      <Modal
+        show={show}
+        onHide={() => setShow(false)}
+        dialogClassName="modal-100w"
+        aria-labelledby="example-custom-modal-styling-title"
+      >
+        
+        <Modal.Header closeButton>
+         
+        </Modal.Header>
+        
+        <Modal.Body>
+          <div style={{display:'flex', justifyContent:'space-evenly'}}>
+          <button className='btn btn-info'>Pending Items ({PendingBadgeData.length})</button>
+          {Dispatch==0?
+          <></>
+          :
+          <button onClick={()=>{
+            Totalfuntion()
+            setlg(true)
+          }} className='btn btn-danger'>Ready to dispatch ({Dispatch.length})</button>
+        }
+         
+          </div>
+                   
+
+       {PendingBadgeData.map((item)=>{
+        return(
+          <>
+           
+              <Card style={{marginTop:'20px'}}>
+              
+                <Card.Body>
+                  <div style={{display:'flex',justifyContent:'space-evenly'}}>
+                    <div>
+                    <h5>{item.title}</h5 >
+                  <h5 style={{color:'green'}}> ${item.price}/-</h5>
+                    </div>
+                 <div style={{justifyContent:'space-evenly',display:'flex',width:'40%',marginLeft:'80px'}}>
+                 <AiOutlineCheck onClick={()=>SendToDispatch(item.id)}  color='green' size={'25px'}/>
+                  <FaTrashRestore onClick={()=>RemoveBadge(item.id)} color='red' size={'20px'}/>
+             
+                  
+                 </div>
+                 
+                  
+                  </div>
+              
+                </Card.Body>
+              </Card>
+          </>
+        )
+       })}
+    
+        </Modal.Body>
+      </Modal>
+      <Modal
+        show={lg}
+        onHide={() => setlg(false)}
+        dialogClassName="modal-100w"
+        aria-labelledby="example-custom-modal-styling-title"
+      >
+        
+        <Modal.Header  closeButton>
+         
+        </Modal.Header>
+        
+        <Modal.Body>
+         <h5>Total Dispatch Items ({Dispatch.length})</h5>
+          <Card style={{marginTop:'20px'}}>
+              
+              <Card.Body>
+             
+          {Dispatch.map((item)=>{
+          
+        return(
+          <>
+         <Row>
+        
+          <div style={{display:'flex',}}>
+            <div className='col-8' >
+            <ul>
+            <li>{item.title}</li>
+            </ul>
+            </div>
+        <div className='col-4' style={{display:'flex',justifyContent:'space-between'}}>
+        ${item.price}
+        
+        <GrAddCircle onClick={()=>AddNewMore(item.id)} size={20}/>
+        <GrSubtractCircle onClick={()=>removeinDispatch(item.id)} size={20}/>
+        <FaTrashRestore onClick={()=>removeinDispatch(item.id)} color='red' size={'20px'}/>
+       
+        </div>
+         
+          </div>
+                 
+                
+         </Row>
+
+          </>
+        )
+       })}
+       
+         </Card.Body >
+         <Card.Body >
+       
+     
+    {Total==0?<></>:<>Grand Total Price= {Total}</>}
+         
+          </Card.Body>
+         <div style={{display:'flex', justifyContent:'space-evenly',marginBottom:'10px'}}>
+          {Dispatch==0?
+        <>
+        <h4>No itmes...</h4>
+        </>
+        :
+<button onClick={()=>OrderPlace()}  className='btn btn-success'>PLACE ORDER</button>
+        }
+          
+          </div>
+              </Card>
+        </Modal.Body>
+      </Modal>
+    </Dropdown>
+   
+  </Nav>
+  </Container>
+  
+ </Navbar>
+ {Loader==false?
+<Spiner/>
+
+:
+<>
+<div className='container'> 
+    <Row xs={1} md={4} className="g-4">
+       {actyalProducts.map((item)=>{
+        return(
+          
+          <Col>
+          <Card>
+            <Card.Img variant="top" src={item.images}/>
+            <Card.Body>
+              <Card.Title>{item.title}</Card.Title>
+              <Card.Text>
+                <ReactShowMoreText  lines={2}>
+                {item.description}
+                </ReactShowMoreText>
+              
+              </Card.Text>
+              <Card.Title style={{color:'green'}}> ${item.price}/-</Card.Title>
+              
+            </Card.Body>
+            <button onClick={()=>AddClickToBadge(item.id)} className='btn btn-success'>Add to Card</button>
+          </Card>
+        </Col>
+        )
+       })}
+    </Row>
+  
+    </div>
+</>
+}
+
+  </>
+  )
+}
+
+export default Home
